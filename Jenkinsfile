@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED = 'deploy-key'
+        SSH_CRED = 'node-app-key'
         SERVER_IP = '13.233.250.148'
         REMOTE_USER = 'ubuntu'
         WEB_DIR = '/var/www/html'
@@ -12,7 +12,7 @@ pipeline {
 
         stage('Clone Code') {
             steps {
-                git url: 'https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git', branch: 'main'
+                git url: 'https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git', branch: 'master'
             }
         }
 
