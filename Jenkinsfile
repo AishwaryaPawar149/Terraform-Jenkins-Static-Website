@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED = 'pull-key'
-        SERVER_IP = '13.233.250.148'
-        REMOTE_USER = 'ec2-user'
-        WEB_DIR = '/var/www/html'
-    }
+    SSH_CRED = 'pull-key'           // Jenkins credential with private key
+    SERVER_IP = '13.233.250.148'    // Terraform EC2 public IP
+    REMOTE_USER = 'ubuntu'          // Ubuntu AMI user
+    WEB_DIR = '/var/www/html'
+}
 
     stages {
 
