@@ -1,33 +1,34 @@
 pipeline {
+
     agent any
 
     environment {
-        SSH_CRED = 'node-app-key'
-        SERVER_IP = '13.203.46.112'
-        REMOTE_USER = 'ubuntu'
-        WEB_DIR = '/var/www/html'
+        SERVER_USER = "ubuntu"
+        SERVER_IP   = "13.203.46.112"
+        REMOTE_PATH = "/var/www/html"
     }
 
     stages {
 
-        stage('Clone Code') {
+        stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git', branch: 'master'
+                echo "📥 Fetching Code from GitHub..."
+                git branch: 'master', url: 'https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git'
             }
         }
 
-        stage('Deploy Website') {
+        stage('Deploy to Server') {
             steps {
-                sshagent(credentials: ["${SSH_CRED}"]) {
+                sshagent(['ubuntu']) {
                     sh '''
-                        echo "🧹 Cleaning old website..."
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "sudo rm -rf ${WEB_DIR}/*"
+                    echo "🧹 Cleaning previous deployment..."
+                    ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sudo rm -rf $REMOTE_PATH/*"
 
-                        echo "📦 Uploading files..."
-                        scp -o StrictHostKeyChecking=no -r *.html *.css images ${REMOTE_USER}@${SERVER_IP}:/tmp/
+                    echo "📦 Uploading files..."
+                    scp -o StrictHostKeyChecking=no -r * $SERVER_USER@$SERVER_IP:/tmp/
 
-                        echo "🚀 Deploying..."
-                        ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "sudo cp -r /tmp/* ${WEB_DIR}/ && sudo systemctl restart apache2"
+                    echo "🚀 Moving files to Apache folder..."
+                    ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "sudo mv /tmp/* $REMOTE_PATH/"
                     '''
                 }
             }
@@ -36,7 +37,7 @@ pipeline {
         stage('Done') {
             steps {
                 echo "🎉 Deployment Successful!"
-                echo "🌍 Website Live: http://${SERVER_IP}"
+                echo "🌍 Visit: http://$SERVER_IP"
             }
         }
     }
