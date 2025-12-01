@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         SERVER_USER = "ubuntu"
-        SERVER_IP   = "13.203.46.112"
+        SERVER_IP   = "13.201.37.19"
         REMOTE_PATH = "/var/www/html"
     }
 
