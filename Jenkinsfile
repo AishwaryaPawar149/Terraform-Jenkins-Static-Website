@@ -127,37 +127,3 @@ pipeline {
         }
     }
 }
-```
-
-## Main Change:
-- All `sshagent(['ubuntu'])` replaced with `sshagent(['terraform'])`
-
-## Now Verify Your 'terraform' Credential in Jenkins:
-
-1. Go to: **Jenkins Dashboard → Manage Jenkins → Credentials → System → Global credentials**
-
-2. Find the credential with ID `terraform`
-
-3. Make sure it has:
-   - **Kind**: SSH Username with private key
-   - **ID**: `terraform`
-   - **Username**: `ubuntu`
-   - **Private Key**: Your EC2 instance's private key (the entire `.pem` file content)
-
-## If the 'terraform' credential doesn't exist or needs updating:
-
-Click **Add Credentials** or **Update** and set:
-```
-Kind: SSH Username with private key
-ID: terraform
-Username: ubuntu
-Private Key: [Enter directly] → Paste your entire EC2 private key
-```
-
-The private key should look like:
-```
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA...
-(multiple lines)
-...
------END RSA PRIVATE KEY-----
