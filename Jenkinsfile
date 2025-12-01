@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SSH_CRED = 'pull-key'            // Jenkins SSH key credential ID
-        SERVER_IP = '13.233.250.148'     // EC2 Public IP
+        SSH_CRED = 'node-app-key'            // Jenkins SSH key credential ID
+        SERVER_IP = '13.203.46.112'     // EC2 Public IP
         REMOTE_USER = 'ubuntu'           // EC2 username (Ubuntu AMI)
         WEB_DIR = '/var/www/html'        // Apache folder
     }
