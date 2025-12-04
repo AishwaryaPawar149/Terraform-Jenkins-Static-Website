@@ -7,7 +7,7 @@ pipeline {
         GIT_BRANCH      = "master"
         SSH_CRED_ID     = "terraform"          // Jenkins credential ID for SSH key
         REMOTE_USER     = "ubuntu"             // EC2 username
-        REMOTE_IP       = "13.233.165.122"         // Replace with your EC2 public IP
+        REMOTE_IP       = "13.233.165.122"     // EC2 public IP
         REMOTE_PATH     = "/var/www/html"      // Deploy path on EC2
     }
 
@@ -24,7 +24,7 @@ pipeline {
             steps {
                 echo "Copying website files to EC2..."
                 sshagent(credentials: ["${SSH_CRED_ID}"]) {
-                    sh "scp -r * ${REMOTE_USER}@${REMOTE_IP}:${REMOTE_PATH}"
+                    sh "scp -o StrictHostKeyChecking=no -r * ${REMOTE_USER}@${REMOTE_IP}:${REMOTE_PATH}"
                 }
             }
         }
@@ -33,7 +33,7 @@ pipeline {
             steps {
                 echo "Restarting Nginx on EC2..."
                 sshagent(credentials: ["${SSH_CRED_ID}"]) {
-                    sh "ssh ${REMOTE_USER}@${REMOTE_IP} 'sudo systemctl restart nginx'"
+                    sh "ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_IP} 'sudo systemctl restart nginx'"
                 }
             }
         }
