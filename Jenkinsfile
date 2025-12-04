@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         PROJECT_NAME    = "autoscaling-project"
-        GITHUB_REPO_URL = "https://github.com/sruthi234/static-website-project.git"
+        GITHUB_REPO_URL = "https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git"
         GIT_BRANCH      = "master"
         SSH_CRED_ID     = "terraform"          // Jenkins credential ID for SSH key
         REMOTE_USER     = "ubuntu"             // EC2 username
