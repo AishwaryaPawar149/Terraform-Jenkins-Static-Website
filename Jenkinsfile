@@ -11,14 +11,15 @@ pipeline {
         REMOTE_PATH     = "/var/www/html"      // Deploy path on EC2
 
         // Terraform variables
-        TF_VAR_region         = "ap-south-1"
-        TF_VAR_ami_id         = "ami-0041facac80f93bbe"
-        TF_VAR_instance_type  = "t4g.micro"
-        TF_VAR_key_name       = "terraform"
-        TF_VAR_vpc_id         = "vpc-0c6b61f2d046190b5"
-        TF_VAR_subnet_ids     = "subnet-09445e8b614b8e222,subnet-0b7ffdec16dd0024c"
-        TF_VAR_security_group_id = "sg-0eccc0ca87735822f"
-    }
+        environment {
+    TF_VAR_region           = "ap-south-1"
+    TF_VAR_ami_id           = "ami-0041facac80f93bbe"
+    TF_VAR_instance_type    = "t4g.micro"
+    TF_VAR_key_name         = "terraform"
+    TF_VAR_vpc_id           = "vpc-0c6b61f2d046190b5"
+    TF_VAR_subnet_ids       = '["subnet-09445e8b614b8e222","subnet-0b7ffdec16dd0024c"]'
+    TF_VAR_security_group_id = "sg-0eccc0ca87735822f"
+}
 
     stages {
 
