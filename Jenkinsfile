@@ -1,129 +1,57 @@
 pipeline {
-
     agent any
 
     environment {
-        SERVER_USER = "ubuntu"
-        SERVER_IP   = "13.201.56.92"
-        REMOTE_PATH = "/var/www/html"
+        PROJECT_NAME    = "autoscaling-project"
+        GITHUB_REPO_URL = "https://github.com/sruthi234/static-website-project.git"
+        GIT_BRANCH      = "master"
+        SSH_CRED_ID     = "terraform"          // Jenkins credential ID for SSH key
+        REMOTE_USER     = "ubuntu"             // EC2 username
+        REMOTE_IP       = "13.233.165.122"         // Replace with your EC2 public IP
+        REMOTE_PATH     = "/var/www/html"      // Deploy path on EC2
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                echo "📥 Fetching Code from GitHub..."
-                git branch: 'master', url: 'https://github.com/AishwaryaPawar149/Terraform-Jenkins-Static-Website.git'
+                echo "Cloning GitHub repo..."
+                git branch: "${GIT_BRANCH}", url: "${GITHUB_REPO_URL}"
             }
         }
 
-        stage('Test SSH Connection') {
+        stage('Copy Files to EC2') {
             steps {
-                script {
-                    echo "🔍 Testing SSH connection to server..."
-                    sshagent(['terraform']) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no \
-                                -o ConnectTimeout=10 \
-                                ${SERVER_USER}@${SERVER_IP} \
-                                "echo '✅ SSH Connection Successful!' && uptime"
-                        '''
-                    }
+                echo "Copying website files to EC2..."
+                sshagent(credentials: ["${SSH_CRED_ID}"]) {
+                    sh "scp -r * ${REMOTE_USER}@${REMOTE_IP}:${REMOTE_PATH}"
                 }
             }
         }
 
-        stage('Clean Previous Deployment') {
+        stage('Restart Web Server') {
             steps {
-                script {
-                    echo "🧹 Cleaning previous deployment..."
-                    sshagent(['terraform']) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} \
-                            "sudo rm -rf ${REMOTE_PATH}/* && echo '✅ Cleanup Complete'"
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Upload Files') {
-            steps {
-                script {
-                    echo "📦 Uploading website files to server..."
-                    sshagent(['terraform']) {
-                        sh '''
-                            # Create temporary directory if it doesn't exist
-                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} \
-                            "mkdir -p /tmp/website-deploy && rm -rf /tmp/website-deploy/*"
-                            
-                            # Upload files (excluding Jenkins and git files)
-                            scp -o StrictHostKeyChecking=no -r ./* ${SERVER_USER}@${SERVER_IP}:/tmp/website-deploy/
-                            
-                            echo "✅ Files uploaded successfully"
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to Apache') {
-            steps {
-                script {
-                    echo "🚀 Moving files to Apache web directory..."
-                    sshagent(['terraform']) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} \
-                            "sudo cp -r /tmp/website-deploy/* ${REMOTE_PATH}/ && \
-                             sudo chown -R www-data:www-data ${REMOTE_PATH}/* && \
-                             sudo chmod -R 755 ${REMOTE_PATH} && \
-                             echo '✅ Deployment Complete'"
-                        '''
-                    }
+                echo "Restarting Nginx on EC2..."
+                sshagent(credentials: ["${SSH_CRED_ID}"]) {
+                    sh "ssh ${REMOTE_USER}@${REMOTE_IP} 'sudo systemctl restart nginx'"
                 }
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                script {
-                    echo "🔍 Verifying deployment..."
-                    sshagent(['terraform']) {
-                        sh '''
-                            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} \
-                            "ls -lh ${REMOTE_PATH}/ && \
-                             sudo systemctl status apache2 --no-pager | head -10"
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Done') {
-            steps {
-                echo "🎉 Deployment Successful!"
-                echo "🌍 Visit: http://${SERVER_IP}"
-                echo "📊 Check your website now!"
+                echo "Verifying website on EC2..."
+                sh "curl -I http://${REMOTE_IP}"
             }
         }
     }
 
     post {
         success {
-            echo "✅ Pipeline completed successfully!"
-            echo "🌐 Your website is live at: http://${SERVER_IP}"
+            echo "Deployment to EC2 successful!"
         }
         failure {
-            echo "❌ Pipeline failed. Check the logs above for details."
-            echo "💡 Common issues:"
-            echo "   - SSH key 'terraform' not configured correctly in Jenkins credentials"
-            echo "   - Server not accessible (check security groups)"
-            echo "   - Apache not installed or running on server"
-            echo "   - Sudo permissions not configured for ubuntu user"
-        }
-        always {
-            echo "🧹 Cleaning up workspace..."
-            cleanWs()
+            echo "Deployment failed! Check logs."
         }
     }
 }
